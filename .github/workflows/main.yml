@@ -4,10 +4,10 @@ jobs:
   build:
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v3
+      - uses: actions/checkout@v4
 
       - name: Set up JDK 17
-        uses: actions/setup-java@v3
+        uses: actions/setup-java@v4
         with:
           distribution: 'zulu'
           java-version: '17'
@@ -17,8 +17,17 @@ jobs:
         with:
           flutter-version: '3.19.0'
 
-      - name: Unzip project code
-        run: unzip tele_link_shield.zip -d .
+      - name: Unzip project code safely
+        run: |
+          unzip -o tele_link_shield.zip -d temp_project
+          if [ -d "temp_project/tele_link_shield" ]; then
+            mv temp_project/tele_link_shield/* .
+            mv temp_project/tele_link_shield/.* . 2>/dev/null || true
+          else
+            mv temp_project/* .
+            mv temp_project/.* . 2>/dev/null || true
+          fi
+          rm -rf temp_project tele_link_shield.zip
 
       - name: Install dependencies
         run: flutter pub get
@@ -27,7 +36,7 @@ jobs:
         run: flutter build apk --release
 
       - name: Upload APK Artifact
-        uses: actions/upload-artifact@v3
+        uses: actions/upload-artifact@v4
         with:
           name: release-apk
           path: build/app/outputs/flutter-apk/app-release.apk
